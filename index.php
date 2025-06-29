@@ -1,9 +1,17 @@
+<?php
+session_start();
+require_once 'auth_helper.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Design System & Components -->
+    <link rel="stylesheet" href="/mini-project/css/design-system.css">
+    <link rel="stylesheet" href="/mini-project/css/kategori.css">
     <link rel="stylesheet" href="/mini-project/css/style.css">
+    <link rel="stylesheet" href="/mini-project/css/beranda.css">
     <title>Literaturku</title>
 </head>
 <body>

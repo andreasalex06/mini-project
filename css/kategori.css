@@ -1,0 +1,553 @@
+/* ========================================
+   KATEGORI COMPONENT STYLES
+   
+   Note: design-system.css is loaded separately in index.php
+   ======================================== */
+
+/* ===== KATEGORI CONTAINER ===== */
+.kategori {
+    background: var(--color-primary-gradient);
+    border-radius: var(--radius-xl);
+    padding: var(--space-8);
+    margin-bottom: var(--space-8);
+    box-shadow: var(--shadow-xl);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.kategori::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="rgba(255,255,255,0.03)"><circle cx="30" cy="30" r="3"/></g></svg>');
+    pointer-events: none;
+}
+
+/* ===== KATEGORI HEADER ===== */
+.kategori-header {
+    border-radius: 4px;
+    background-color: var(--color-primary);
+    text-align: center;
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-4);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.kategori-header h3 {
+    color: var(--color-white);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    font-family: var(--font-family-display);
+    margin-bottom: var(--space-2);
+    line-height: var(--line-height-tight);
+}
+
+.kategori-header p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: var(--font-size-base);
+    margin: 0;
+    opacity: 0.8;
+}
+
+/* ===== KATEGORI LIST ===== */
+.kategori-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+    position: relative;
+    z-index: 1;
+}
+
+/* ===== KATEGORI ITEM ===== */
+.kategori-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    background: var(--color-secondary-light);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: var(--color-white);
+    transition: all var(--transition-base);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(15px);
+    position: relative;
+    overflow: hidden;
+    transform-style: preserve-3d;
+}
+
+.kategori-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.1), 
+        transparent
+    );
+    transition: left var(--transition-slow);
+}
+
+.kategori-item:hover::before {
+    left: 100%;
+}
+
+.kategori-item:hover {
+    background: var(--color-secondary);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: var(--shadow-2xl);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.kategori-item.active {
+    background: var(--color-primary-gradient);
+    border-color: var(--color-secondary);
+    box-shadow: 0 8px 32px rgba(165, 206, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+.kategori-item.active::after {
+    content: '✓';
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+    width: 20px;
+    height: 20px;
+    background: var(--color-secondary);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-white);
+}
+
+/* ===== KATEGORI ICON ===== */
+.kategori-icon {
+    font-size: var(--font-size-2xl);
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-lg);
+    flex-shrink: 0;
+    transition: all var(--transition-base);
+}
+
+.kategori-item:hover .kategori-icon {
+    transform: scale(1.1) rotate(5deg);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.kategori-item.active .kategori-icon {
+    background: var(--color-secondary);
+    color: var(--color-white) !important;
+    transform: scale(1.05);
+}
+
+/* ===== KATEGORI INFO ===== */
+.kategori-info {
+    flex: 1;
+    min-width: 0; /* Prevents flex item from overflowing */
+}
+
+.kategori-nama {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-1);
+    line-height: var(--line-height-tight);
+    color: var(--color-white);
+}
+
+.kategori-desc {
+    font-size: var(--font-size-sm);
+    color: rgba(255, 255, 255, 0.8);
+    line-height: var(--line-height-normal);
+    opacity: 0.9;
+}
+
+/* ===== KATEGORI STATS ===== */
+.kategori-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.kategori-count {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--color-white);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    min-width: 48px;
+    margin-bottom: var(--space-1);
+    transition: all var(--transition-base);
+}
+
+.kategori-label {
+    font-size: var(--font-size-xs);
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: var(--font-weight-medium);
+}
+
+.kategori-item.active .kategori-count {
+    background: var(--color-secondary);
+    color: var(--color-white);
+    transform: scale(1.1);
+}
+
+.kategori-item:hover .kategori-count {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+/* ===== KATEGORI PROGRESS BAR ===== */
+.kategori-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: currentColor;
+    transition: width var(--transition-slow) ease-out;
+    transform-origin: left;
+}
+
+.kategori-item:hover .progress-bar {
+    transform: scaleY(1.5);
+}
+
+/* ===== KATEGORI EMPTY STATE ===== */
+.kategori-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: var(--space-12) var(--space-6);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.kategori-empty .empty-icon {
+    font-size: var(--font-size-5xl);
+    display: block;
+    margin-bottom: var(--space-4);
+    opacity: 0.6;
+    animation: float 3s ease-in-out infinite;
+}
+
+.empty-content h4 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-2);
+    color: var(--color-white);
+}
+
+.empty-content p {
+    font-size: var(--font-size-base);
+    opacity: 0.8;
+    margin: 0;
+}
+
+/* ===== KATEGORI SUMMARY ===== */
+.kategori-summary {
+    background: var(--color-primary-gradient);
+    display: flex;
+    justify-content: center;
+    gap: var(--space-8);
+    margin-top: var(--space-6);
+    padding-top: var(--space-6);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+}
+
+.summary-item {
+    text-align: center;
+    min-width: 80px;
+}
+
+.summary-number {
+    display: block;
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-white);
+    margin-bottom: var(--space-1);
+    line-height: 1;
+}
+
+.summary-label {
+    font-size: var(--font-size-sm);
+    color: rgba(255, 255, 255, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: var(--font-weight-medium);
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.kategori-item {
+    animation: slideInUp 0.6s ease-out;
+}
+
+.kategori-item:nth-child(1) { animation-delay: 0.1s; }
+.kategori-item:nth-child(2) { animation-delay: 0.2s; }
+.kategori-item:nth-child(3) { animation-delay: 0.3s; }
+.kategori-item:nth-child(4) { animation-delay: 0.4s; }
+.kategori-item:nth-child(5) { animation-delay: 0.5s; }
+.kategori-item:nth-child(6) { animation-delay: 0.6s; }
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+    .kategori {
+        padding: var(--space-6);
+        margin-bottom: var(--space-6);
+    }
+    
+    .kategori-list {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--space-3);
+    }
+    
+    .kategori-header h3 {
+        font-size: var(--font-size-xl);
+    }
+    
+    .summary-item {
+        min-width: 60px;
+    }
+    
+    .kategori-summary {
+        gap: var(--space-6);
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .kategori {
+        padding: var(--space-4);
+        margin-bottom: var(--space-4);
+        border-radius: var(--radius-lg);
+    }
+    
+    .kategori-list {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+    }
+    
+    .kategori-item {
+        padding: var(--space-4);
+        gap: var(--space-3);
+    }
+    
+    .kategori-header {
+        margin-bottom: var(--space-4);
+        padding-bottom: var(--space-3);
+    }
+    
+    .kategori-header h3 {
+        font-size: var(--font-size-lg);
+    }
+    
+    .kategori-header p {
+        font-size: var(--font-size-sm);
+    }
+    
+    .kategori-icon {
+        width: 40px;
+        height: 40px;
+        font-size: var(--font-size-xl);
+    }
+    
+    .kategori-nama {
+        font-size: var(--font-size-base);
+    }
+    
+    .kategori-desc {
+        font-size: var(--font-size-xs);
+    }
+    
+    .kategori-count {
+        font-size: var(--font-size-base);
+        padding: var(--space-1) var(--space-2);
+        min-width: 36px;
+    }
+    
+    .kategori-summary {
+        flex-wrap: wrap;
+        gap: var(--space-4);
+    }
+    
+    .summary-number {
+        font-size: var(--font-size-xl);
+    }
+    
+    .summary-label {
+        font-size: var(--font-size-xs);
+    }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+    .kategori {
+        padding: var(--space-3);
+        margin: 0 calc(-1 * var(--space-4)) var(--space-4);
+        border-radius: 0;
+    }
+    
+    .kategori-item {
+        padding: var(--space-3);
+        border-radius: var(--radius-base);
+    }
+    
+    .kategori-icon {
+        width: 32px;
+        height: 32px;
+        font-size: var(--font-size-lg);
+    }
+    
+    .kategori-info {
+        min-width: 0;
+    }
+    
+    .kategori-nama {
+        font-size: var(--font-size-sm);
+        margin-bottom: var(--space-1);
+    }
+    
+    .kategori-desc {
+        display: none; /* Hide description on very small screens */
+    }
+    
+    .kategori-stats {
+        align-items: flex-end;
+    }
+    
+    .kategori-count {
+        font-size: var(--font-size-sm);
+        padding: var(--space-1);
+        min-width: 28px;
+    }
+    
+    .kategori-summary {
+        gap: var(--space-3);
+    }
+}
+
+/* ===== FOCUS STATES FOR ACCESSIBILITY ===== */
+.kategori-item:focus {
+    outline: 3px solid var(--color-secondary);
+    outline-offset: 2px;
+}
+
+.kategori-item:focus-visible {
+    outline: 3px solid var(--color-secondary);
+    outline-offset: 2px;
+}
+
+/* ===== HIGH CONTRAST MODE ===== */
+@media (prefers-contrast: high) {
+    .kategori-item {
+        border-width: 3px;
+    }
+    
+    .kategori-item.active {
+        border-width: 4px;
+    }
+    
+    .kategori-desc {
+        opacity: 1;
+    }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+    .kategori-item {
+        animation: none;
+    }
+    
+    .kategori-item:hover {
+        transform: none;
+    }
+    
+    .kategori-item::before {
+        transition: none;
+    }
+    
+    .empty-icon {
+        animation: none;
+    }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+    .kategori {
+        background: var(--color-white) !important;
+        box-shadow: none;
+        border: 2px solid var(--color-gray-300);
+        break-inside: avoid;
+    }
+    
+    .kategori-header h3,
+    .kategori-nama,
+    .summary-number {
+        color: var(--color-gray-900) !important;
+    }
+    
+    .kategori-header p,
+    .kategori-desc,
+    .kategori-label,
+    .summary-label {
+        color: var(--color-gray-600) !important;
+    }
+    
+    .kategori-item {
+        background: var(--color-gray-50) !important;
+        border: 1px solid var(--color-gray-300) !important;
+        break-inside: avoid;
+    }
+    
+    .kategori-progress,
+    .kategori-item::before,
+    .kategori-item::after {
+        display: none !important;
+    }
+} 

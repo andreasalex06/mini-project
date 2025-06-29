@@ -1,0 +1,318 @@
+/* Profile Page Styles - Literaturku */
+
+/* Profile Container */
+.profile-main {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: calc(100vh - 200px);
+    padding: 2rem 1rem;
+}
+
+.profile-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Profile Header */
+.profile-header {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #10367d, #667eea, #764ba2);
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: white;
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+}
+
+.profile-title {
+    color: #10367d;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.profile-subtitle {
+    color: #666;
+    font-size: 1rem;
+    opacity: 0.8;
+}
+
+/* Profile Cards */
+.profile-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(16, 54, 125, 0.1);
+    transition: all 0.3s ease;
+}
+
+.profile-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.profile-card h3 {
+    color: #10367d;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #f0f2f5;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.profile-card h3::before {
+    content: '📋';
+    font-size: 1.2rem;
+}
+
+/* Profile Info Grid */
+.profile-info {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1rem;
+    align-items: center;
+}
+
+.profile-info .label {
+    font-weight: 600;
+    color: #555;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+.profile-info .value {
+    padding: 0.8rem 0;
+    color: #333;
+    border-bottom: 1px solid #f0f2f5;
+    font-weight: 500;
+}
+
+.profile-info .value:last-child,
+.profile-info .label:last-child {
+    border-bottom: none;
+}
+
+/* Profile Actions */
+.profile-actions {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.profile-actions h3 {
+    color: #10367d;
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    font-size: 0.95rem;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.action-btn.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.action-btn.primary:hover {
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.action-btn.secondary {
+    background: white;
+    color: #10367d;
+    border-color: #10367d;
+}
+
+.action-btn.secondary:hover {
+    background: #10367d;
+    color: white;
+}
+
+.action-btn.danger {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+}
+
+.action-btn.danger:hover {
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+}
+
+/* Success Badge */
+.success-badge {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    margin-top: 1rem;
+    box-shadow: 0 4px 16px rgba(46, 204, 113, 0.3);
+}
+
+.success-badge h4 {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.success-badge p {
+    margin-bottom: 0.3rem;
+    opacity: 0.9;
+}
+
+.success-badge small {
+    opacity: 0.8;
+    font-size: 0.85rem;
+}
+
+/* Stats Cards */
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid rgba(16, 54, 125, 0.1);
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #10367d;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .profile-main {
+        padding: 1rem 0.5rem;
+    }
+
+    .profile-header {
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
+    }
+
+    .profile-title {
+        font-size: 1.5rem;
+    }
+
+    .profile-info {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .action-buttons {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-header {
+        padding: 1rem;
+    }
+
+    .profile-card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .action-btn {
+        padding: 0.7rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .profile-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Animation */
+.profile-card,
+.profile-header {
+    animation: slideUpFade 0.6s ease-out;
+}
+
+@keyframes slideUpFade {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+} 
