@@ -1,9 +1,9 @@
 <?php
-// Database configuration
-$host = 'localhost';
-$dbname = 'db_artikel'; // Ganti dengan nama database Anda
-$username = 'root'; // Ganti dengan username database Anda
-$password = ''; // Ganti dengan password database Anda
+// Database configuration - FreeSQLDatabase.com
+$host = 'sql12.freesqldatabase.com';
+$dbname = 'sql12787593';
+$username = 'sql12787593';
+$password = 'CMGgKInmx4';
 
 try {
     // Create PDO connection

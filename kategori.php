@@ -426,19 +426,19 @@ if (isset($pdo)) {
                                     <?php else: ?>
                                         <i class="bi bi-arrow-right text-muted"></i>
                                     <?php endif; ?>
-                                </div>
-                                
+</div>
+
                                 <!-- Progress bar for all articles -->
                                 <div class="progress mt-3" style="height: 4px;">
                                     <div class="progress-bar bg-secondary" style="width: 100%"></div>
                                 </div>
-                            </div>
-                        </div>
-                    </a>
+        </div>
+        </div>
+    </a>
                 </div>
-
-                <?php if (!empty($kategoris)): ?>
-                    <?php foreach ($kategoris as $kategori): ?>
+    
+    <?php if (!empty($kategoris)): ?>
+        <?php foreach ($kategoris as $kategori): ?>
                         <div class="col-lg-6 col-md-6 mb-4">
                             <a href="index.php?kategori=<?php echo urlencode($kategori['enum']); ?>" class="text-decoration-none">
                                 <div class="card h-100 shadow-sm border-0 <?php echo $current_kategori == $kategori['enum'] ? 'border border-primary border-3' : ''; ?> hover-card" style="max-width: 100%; overflow: hidden;">
@@ -446,31 +446,31 @@ if (isset($pdo)) {
                                         <div class="d-flex align-items-center mb-3">
                                             <div class="rounded-circle p-3 me-3" style="background-color: <?php echo $kategori['warna']; ?>15;">
                                                 <div class="fs-4" style="color: <?php echo $kategori['warna']; ?>">
-                                                    <?php echo $kategori['icon']; ?>
+                    <?php echo $kategori['icon']; ?>
                                                 </div>
                                             </div>
                                             <div class="flex-grow-1">
                                                 <h5 class="card-title mb-1 fw-bold"><?php echo htmlspecialchars($kategori['nama']); ?></h5>
                                                 <p class="card-text text-muted small mb-0" style="word-wrap: break-word; overflow-wrap: break-word;">
-                                                    <?php 
-                                                    // Generate description based on category
-                                                    $descriptions = [
-                                                        'teknologi' => 'Inovasi & perkembangan teknologi',
-                                                        'pendidikan' => 'Pembelajaran & edukasi',
-                                                        'bisnis' => 'Dunia bisnis & ekonomi',
-                                                        'kesehatan' => 'Tips kesehatan & wellness',
-                                                        'sains' => 'Pengetahuan & penelitian',
-                                                        'lifestyle' => 'Gaya hidup & trend',
-                                                        'olahraga' => 'Sports & aktivitas fisik',
-                                                        'hiburan' => 'Entertainment & media',
-                                                        'umum' => 'Artikel umum & beragam'
-                                                    ];
-                                                    echo $descriptions[$kategori['enum']] ?? 'Artikel ' . $kategori['nama'];
-                                                    ?>
+                        <?php 
+                        // Generate description based on category
+                        $descriptions = [
+                            'teknologi' => 'Inovasi & perkembangan teknologi',
+                            'pendidikan' => 'Pembelajaran & edukasi',
+                            'bisnis' => 'Dunia bisnis & ekonomi',
+                            'kesehatan' => 'Tips kesehatan & wellness',
+                            'sains' => 'Pengetahuan & penelitian',
+                            'lifestyle' => 'Gaya hidup & trend',
+                            'olahraga' => 'Sports & aktivitas fisik',
+                            'hiburan' => 'Entertainment & media',
+                            'umum' => 'Artikel umum & beragam'
+                        ];
+                        echo $descriptions[$kategori['enum']] ?? 'Artikel ' . $kategori['nama'];
+                        ?>
                                                 </p>
                                             </div>
-                                        </div>
-                                        
+                </div>
+                
                                         <div class="d-flex justify-content-between align-items-center">
                                             <span class="badge rounded-pill fs-6 px-3 py-2" 
                                                   style="background-color: <?php echo $kategori['warna']; ?>; color: white;">
@@ -481,10 +481,10 @@ if (isset($pdo)) {
                                             <?php else: ?>
                                                 <i class="bi bi-arrow-right text-muted"></i>
                                             <?php endif; ?>
-                                        </div>
-                                        
-                                        <!-- Progress bar showing relative popularity -->
-                                        <?php if ($kategori_stats['total'] > 0): ?>
+                </div>
+                
+                <!-- Progress bar showing relative popularity -->
+                <?php if ($kategori_stats['total'] > 0): ?>
                                             <div class="progress mt-3" style="height: 4px;">
                                                 <div class="progress-bar" 
                                                      style="width: <?php echo ($kategori['count'] / $kategori_stats['total']) * 100; ?>%; background-color: <?php echo $kategori['warna']; ?>">
@@ -498,7 +498,7 @@ if (isset($pdo)) {
                                     </div>
                                 </div>
                             </a>
-                        </div>
+                    </div>
                     <?php endforeach; ?>
                 <?php endif; ?>
 
@@ -515,10 +515,10 @@ if (isset($pdo)) {
                                     Tulis Artikel Pertama
                                 </a>
                             </div>
-                        </div>
-                    </div>
-                <?php endif; ?>
             </div>
+        </div>
+    <?php endif; ?>
+</div>
 
             <!-- Quick Category Filter (Optional Enhancement) -->
             <?php if (!empty($kategoris) && count($kategoris) > 3): ?>
@@ -549,11 +549,11 @@ if (isset($pdo)) {
                                     <?php endforeach; ?>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
+    </div>
+    </div>
         </div>
+    <?php endif; ?>
+</div>
     </main>
 
     <!-- Footer -->

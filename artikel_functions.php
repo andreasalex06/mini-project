@@ -1,5 +1,11 @@
 <?php
-// Artikel CRUD Functions
+// Artikel CRUD Functions - LEGACY VERSION
+// ⚠️ DEPRECATED: File ini menggunakan sistem kategori lama (kategori_id)
+// ✅ GUNAKAN: artikel_functions_enum.php untuk sistem ENUM yang baru
+// 
+// File ini tetap ada untuk kompatibilitas backward, tapi untuk 
+// development baru gunakan artikel_functions_enum.php yang sudah
+// disesuaikan dengan database FreeSQLDatabase.com dan struktur ENUM
 
 // Fungsi untuk mendapatkan semua artikel dengan pagination
 function getArtikel($pdo, $limit = 10, $offset = 0, $kategori_id = null, $search = null) {

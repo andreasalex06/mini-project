@@ -110,8 +110,11 @@ function getArtikelById($pdo, $id) {
 // Fungsi untuk menambah artikel baru
 function tambahArtikel($pdo, $data) {
     try {
-        $sql = "INSERT INTO artikel (judul, konten, ringkasan, category_enum, user_id, gambar, status) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
+        // Get current timestamp for created_at
+        $created_at = date('Y-m-d H:i:s');
+        
+        $sql = "INSERT INTO artikel (judul, konten, ringkasan, category_enum, user_id, gambar, status, created_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
         $stmt = $pdo->prepare($sql);
         return $stmt->execute([
@@ -121,7 +124,8 @@ function tambahArtikel($pdo, $data) {
             $data['category_enum'] ?? 'umum',
             $data['user_id'],
             $data['gambar'] ?? null,
-            $data['status'] ?? 'published'
+            $data['status'] ?? 'published',
+            $created_at
         ]);
     } catch(PDOException $e) {
         error_log("Error adding artikel: " . $e->getMessage());
