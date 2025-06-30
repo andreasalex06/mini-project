@@ -9,7 +9,7 @@ CREATE TABLE `artikel` (
   `gambar` varchar(255) DEFAULT NULL,
   `status` enum('draft','published','archived') DEFAULT 'published',
   `views` int(11) DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `created_at` DATETIME NOT NULL, -- DEFAULT DIHAPUS
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
