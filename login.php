@@ -16,56 +16,87 @@ unset($_SESSION['success_message']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Halaman Login</title>
-    <link rel="stylesheet" href="css/auth.css">
+    <meta name="author" content="Andreas Alex">
+    <meta name="description" content="Login ke Literaturku - Platform literasi modern untuk menambah dan membagikan literasi kepada dunia">
+    <title>Halaman Login - Literaturku</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
-<body>
+<body class="bg-light">
 
-    <div class="auth-container">
-    <h2>Login Akun</h2>
+    <div class="container">
+        <div class="row justify-content-center min-vh-100 align-items-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <i class="bi bi-book-fill text-primary fs-1 mb-3"></i>
+                            <h2 class="card-title text-primary">Login Akun</h2>
+                            <p class="text-muted">Masuk ke Literaturku</p>
+                        </div>
 
-        <?php if (!empty($errors)): ?>
-            <div class="alert alert-error">
-                <ul>
-                    <?php foreach ($errors as $error): ?>
-                        <li><?php echo htmlspecialchars($error); ?></li>
-                    <?php endforeach; ?>
-                </ul>
+                        <?php if (!empty($errors)): ?>
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    <?php foreach ($errors as $error): ?>
+                                        <li><?php echo htmlspecialchars($error); ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if ($success_message): ?>
+                            <div class="alert alert-success">
+                                <?php echo htmlspecialchars($success_message); ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <form action="proses_login.php" method="POST">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">
+                                    <i class="bi bi-envelope me-2"></i>Email
+                                </label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="<?php echo isset($old_data['email']) ? htmlspecialchars($old_data['email']) : ''; ?>" 
+                                       placeholder="Masukkan email Anda" required>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="password" class="form-label">
+                                    <i class="bi bi-lock me-2"></i>Password
+                                </label>
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       placeholder="Masukkan password Anda" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-2 mb-3">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                            </button>
+                        </form>
+
+                        <div class="text-center">
+                            <a href="index.php" class="btn btn-outline-secondary btn-sm me-2">
+                                <i class="bi bi-arrow-left me-1"></i>Kembali ke Beranda
+                            </a>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="text-center">
+                            <p class="text-muted mb-0">
+                                Belum punya akun? 
+                                <a href="register.php" class="text-primary text-decoration-none fw-bold">Daftar di sini</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
-        <?php endif; ?>
-
-        <?php if ($success_message): ?>
-            <div class="alert alert-success">
-                <?php echo htmlspecialchars($success_message); ?>
-            </div>
-        <?php endif; ?>
-
-    <form action="proses_login.php" method="POST">
-        
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" 
-                       value="<?php echo isset($old_data['email']) ? htmlspecialchars($old_data['email']) : ''; ?>" 
-                       required>
-        </div>
-        
-            <div class="form-group">
-                <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-        </div>
-
-            <button type="submit" class="btn-submit">Login</button>
-
-        </form>
-
-        <div class="auth-link">
-            <a href="index.php" class="btn-home">← Kembali ke Beranda</a>
-        </div>
-
-        <div class="auth-link">
-            Belum punya akun? <a href="register.php">Daftar di sini</a>
         </div>
     </div>
 
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
