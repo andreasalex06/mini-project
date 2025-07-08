@@ -1,119 +1,119 @@
 <?php
-session_start();
+require_once 'koneksi.php';
 
-// Get errors and old data from session
-$errors = isset($_SESSION['errors']) ? $_SESSION['errors'] : array();
-$old_data = isset($_SESSION['old_data']) ? $_SESSION['old_data'] : array();
-$success_message = isset($_SESSION['success_message']) ? $_SESSION['success_message'] : '';
+$title = 'Daftar - Blog Sederhana';
+$error = '';
+$success = '';
 
-// Clear session data
-unset($_SESSION['errors']);
-unset($_SESSION['old_data']);
-unset($_SESSION['success_message']);
+// Jika sudah login, redirect ke admin
+if (isset($_SESSION['user_id'])) {
+    header('Location: admin.php');
+    exit();
+}
+
+// Proses registrasi
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $username = trim($_POST['username']);
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
+    $confirm_password = $_POST['confirm_password'];
+    $nama_lengkap = trim($_POST['nama_lengkap']);
+    
+    // Validasi input
+    if (empty($username) || empty($email) || empty($password) || empty($nama_lengkap)) {
+        $error = 'Semua field harus diisi!';
+    } elseif (strlen($username) < 3) {
+        $error = 'Username minimal 3 karakter!';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Format email tidak valid!';
+    } elseif (strlen($password) < 6) {
+        $error = 'Password minimal 6 karakter!';
+    } elseif ($password !== $confirm_password) {
+        $error = 'Password dan konfirmasi password tidak sama!';
+    } else {
+        try {
+            // Cek apakah username atau email sudah ada
+            $sql = "SELECT id FROM users WHERE username = ? OR email = ?";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$username, $email]);
+            
+            if ($stmt->fetch()) {
+                $error = 'Username atau email sudah digunakan!';
+            } else {
+                // Daftar user baru
+                $password_hash = password_hash($password, PASSWORD_DEFAULT);
+                $sql = "INSERT INTO users (username, email, password, nama_lengkap, role) VALUES (?, ?, ?, ?, 'user')";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([$username, $email, $password_hash, $nama_lengkap]);
+                
+                $success = 'Registrasi berhasil! Silakan login.';
+            }
+        } catch (PDOException $e) {
+            $error = 'Terjadi kesalahan: ' . $e->getMessage();
+        }
+    }
+}
+
+include 'header.php';
 ?>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="author" content="Andreas Alex">
-    <meta name="description" content="Daftar akun baru di Literaturku - Platform literasi modern untuk menambah dan membagikan literasi kepada dunia">
-    <title>Halaman Registrasi - Literaturku</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-</head>
-<body class="bg-light">
 
-    <div class="container">
-        <div class="row justify-content-center min-vh-100 align-items-center">
-            <div class="col-md-6 col-lg-5">
-                <div class="card shadow">
-                    <div class="card-body p-5">
-                        <div class="text-center mb-4">
-                            <i class="bi bi-person-plus-fill text-success fs-1 mb-3"></i>
-                            <h2 class="card-title text-success">Buat Akun Baru</h2>
-                            <p class="text-muted">Bergabung dengan Literaturku</p>
-                        </div>
-
-                        <?php if (!empty($errors)): ?>
-                            <div class="alert alert-danger">
-                                <ul class="mb-0">
-                                    <?php foreach ($errors as $error): ?>
-                                        <li><?php echo htmlspecialchars($error); ?></li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            </div>
-                        <?php endif; ?>
-
-                        <?php if ($success_message): ?>
-                            <div class="alert alert-success">
-                                <?php echo htmlspecialchars($success_message); ?>
-                            </div>
-                        <?php endif; ?>
-
-                        <form action="proses_register.php" method="POST">
-                            <div class="mb-3">
-                                <label for="username" class="form-label">
-                                    <i class="bi bi-person me-2"></i>Username
-                                </label>
-                                <input type="text" class="form-control" id="username" name="username" 
-                                       value="<?php echo isset($old_data['username']) ? htmlspecialchars($old_data['username']) : ''; ?>" 
-                                       placeholder="Masukkan username Anda" required>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="email" class="form-label">
-                                    <i class="bi bi-envelope me-2"></i>Email
-                                </label>
-                                <input type="email" class="form-control" id="email" name="email" 
-                                       value="<?php echo isset($old_data['email']) ? htmlspecialchars($old_data['email']) : ''; ?>" 
-                                       placeholder="Masukkan email Anda" required>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="password" class="form-label">
-                                    <i class="bi bi-lock me-2"></i>Password
-                                </label>
-                                <input type="password" class="form-control" id="password" name="password" 
-                                       placeholder="Masukkan password Anda" required>
-                            </div>
-
-                            <div class="mb-4">
-                                <label for="password_confirm" class="form-label">
-                                    <i class="bi bi-lock-fill me-2"></i>Konfirmasi Password
-                                </label>
-                                <input type="password" class="form-control" id="password_confirm" name="password_confirm" 
-                                       placeholder="Ulangi password Anda" required>
-                            </div>
-
-                            <button type="submit" class="btn btn-success w-100 py-2 mb-3">
-                                <i class="bi bi-person-plus me-2"></i>Register
-                            </button>
-                        </form>
-
-                        <div class="text-center">
-                            <a href="index.php" class="btn btn-outline-secondary btn-sm me-2">
-                                <i class="bi bi-arrow-left me-1"></i>Kembali ke Beranda
-                            </a>
-                        </div>
-
-                        <hr class="my-4">
-
-                        <div class="text-center">
-                            <p class="text-muted mb-0">
-                                Sudah punya akun? 
-                                <a href="login.php" class="text-success text-decoration-none fw-bold">Login di sini</a>
-                            </p>
-                        </div>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header text-center">
+                <h4>📝 Daftar Akun Baru</h4>
+            </div>
+            <div class="card-body">
+                <?php if ($error): ?>
+                    <div class="alert alert-danger"><?php echo $error; ?></div>
+                <?php endif; ?>
+                
+                <?php if ($success): ?>
+                    <div class="alert alert-success"><?php echo $success; ?></div>
+                <?php endif; ?>
+                
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="nama_lengkap" class="form-label">Nama Lengkap</label>
+                        <input type="text" class="form-control" id="nama_lengkap" name="nama_lengkap" 
+                               value="<?php echo isset($_POST['nama_lengkap']) ? htmlspecialchars($_POST['nama_lengkap']) : ''; ?>" required>
                     </div>
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" 
+                               value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>" required>
+                        <div class="form-text">Minimal 3 karakter</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                        <div class="form-text">Minimal 6 karakter</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Konfirmasi Password</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Daftar</button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <p>Sudah punya akun? <a href="login.php">Login disini</a></p>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Bootstrap JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<?php include 'footer.php'; ?> 

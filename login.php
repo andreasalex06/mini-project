@@ -1,102 +1,104 @@
 <?php
-session_start();
+require_once 'koneksi.php';
 
-// Get errors and old data from session
-$errors = isset($_SESSION['errors']) ? $_SESSION['errors'] : array();
-$old_data = isset($_SESSION['old_data']) ? $_SESSION['old_data'] : array();
-$success_message = isset($_SESSION['success_message']) ? $_SESSION['success_message'] : '';
+$title = 'Login - Blog Sederhana';
+$error = '';
 
-// Clear session data
-unset($_SESSION['errors']);
-unset($_SESSION['old_data']);
-unset($_SESSION['success_message']);
+// Jika sudah login, redirect ke halaman tujuan atau admin
+if (isset($_SESSION['user_id'])) {
+    $redirect_to = isset($_GET['redirect']) ? $_GET['redirect'] : 'admin.php';
+    header('Location: ' . $redirect_to);
+    exit();
+}
+
+// Simpan halaman asal jika ada
+$redirect_after_login = 'admin.php'; // default
+if (isset($_GET['redirect'])) {
+    $redirect_after_login = $_GET['redirect'];
+} elseif (isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER'])) {
+    // Cek apakah referer dari domain yang sama
+    $referer_host = parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST);
+    $current_host = $_SERVER['HTTP_HOST'];
+    
+    if ($referer_host === $current_host) {
+        $redirect_after_login = $_SERVER['HTTP_REFERER'];
+    }
+}
+
+// Proses login
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $username = trim($_POST['username']);
+    $password = $_POST['password'];
+    $redirect_to = isset($_POST['redirect_to']) ? $_POST['redirect_to'] : 'admin.php';
+    
+    if (empty($username) || empty($password)) {
+        $error = 'Username dan password harus diisi!';
+    } else {
+        try {
+            $sql = "SELECT * FROM users WHERE username = ? OR email = ?";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$username, $username]);
+            $user = $stmt->fetch();
+            
+            if ($user && password_verify($password, $user['password'])) {
+                // Login berhasil
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['email'] = $user['email'];
+                $_SESSION['role'] = $user['role'];
+                
+                // Redirect ke halaman tujuan atau admin
+                header('Location: ' . $redirect_to);
+                exit();
+            } else {
+                $error = 'Username atau password salah!';
+            }
+        } catch (PDOException $e) {
+            $error = 'Terjadi kesalahan: ' . $e->getMessage();
+        }
+    }
+}
+
+include 'header.php';
 ?>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="author" content="Andreas Alex">
-    <meta name="description" content="Login ke Literaturku - Platform literasi modern untuk menambah dan membagikan literasi kepada dunia">
-    <title>Halaman Login - Literaturku</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-</head>
-<body class="bg-light">
 
-    <div class="container">
-        <div class="row justify-content-center min-vh-100 align-items-center">
-            <div class="col-md-6 col-lg-4">
-                <div class="card shadow">
-                    <div class="card-body p-5">
-                        <div class="text-center mb-4">
-                            <i class="bi bi-book-fill text-primary fs-1 mb-3"></i>
-                            <h2 class="card-title text-primary">Login Akun</h2>
-                            <p class="text-muted">Masuk ke Literaturku</p>
-                        </div>
-
-                        <?php if (!empty($errors)): ?>
-                            <div class="alert alert-danger">
-                                <ul class="mb-0">
-                                    <?php foreach ($errors as $error): ?>
-                                        <li><?php echo htmlspecialchars($error); ?></li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            </div>
-                        <?php endif; ?>
-
-                        <?php if ($success_message): ?>
-                            <div class="alert alert-success">
-                                <?php echo htmlspecialchars($success_message); ?>
-                            </div>
-                        <?php endif; ?>
-
-                        <form action="proses_login.php" method="POST">
-                            <div class="mb-3">
-                                <label for="email" class="form-label">
-                                    <i class="bi bi-envelope me-2"></i>Email
-                                </label>
-                                <input type="email" class="form-control" id="email" name="email" 
-                                       value="<?php echo isset($old_data['email']) ? htmlspecialchars($old_data['email']) : ''; ?>" 
-                                       placeholder="Masukkan email Anda" required>
-                            </div>
-                            
-                            <div class="mb-4">
-                                <label for="password" class="form-label">
-                                    <i class="bi bi-lock me-2"></i>Password
-                                </label>
-                                <input type="password" class="form-control" id="password" name="password" 
-                                       placeholder="Masukkan password Anda" required>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary w-100 py-2 mb-3">
-                                <i class="bi bi-box-arrow-in-right me-2"></i>Login
-                            </button>
-                        </form>
-
-                        <div class="text-center">
-                            <a href="index.php" class="btn btn-outline-secondary btn-sm me-2">
-                                <i class="bi bi-arrow-left me-1"></i>Kembali ke Beranda
-                            </a>
-                        </div>
-
-                        <hr class="my-4">
-
-                        <div class="text-center">
-                            <p class="text-muted mb-0">
-                                Belum punya akun? 
-                                <a href="register.php" class="text-primary text-decoration-none fw-bold">Daftar di sini</a>
-                            </p>
-                        </div>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header text-center">
+                <h4>🔑 Login</h4>
+            </div>
+            <div class="card-body">
+                <?php if ($error): ?>
+                    <div class="alert alert-danger"><?php echo $error; ?></div>
+                <?php endif; ?>
+                
+                <form method="POST">
+                    <!-- Hidden field untuk menyimpan tujuan redirect -->
+                    <input type="hidden" name="redirect_to" value="<?php echo htmlspecialchars($redirect_after_login); ?>">
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username atau Email</label>
+                        <input type="text" class="form-control" id="username" name="username" 
+                               value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>" required>
                     </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <p>Belum punya akun? <a href="register.php">Daftar disini</a></p>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Bootstrap JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+<?php include 'footer.php'; ?> 

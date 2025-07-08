@@ -1,298 +1,346 @@
 <?php
-session_start();
-require_once 'auth_helper.php';
+require_once 'koneksi.php';
 
-// Proteksi halaman - hanya user yang login bisa akses
-require_login();
+// Cek apakah user sudah login
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
+    exit();
+}
 
-$current_user = get_logged_in_user();
+$title = 'Edit Profil - Blog Sederhana';
+$error = '';
+$success = '';
 
-// Generate avatar initial
-$avatar_initial = strtoupper(substr($current_user['username'], 0, 1));
-?>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile - Literaturku</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .profile-avatar {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            font-weight: bold;
-            color: white;
-            margin: 0 auto 1rem;
-        }
-    </style>
-</head>
-<body class="bg-light">
+// Ambil data user
+$sql = "SELECT * FROM users WHERE id = ?";
+$stmt = $pdo->prepare($sql);
+$stmt->execute([$_SESSION['user_id']]);
+$user = $stmt->fetch();
 
-<!-- Bootstrap Navigation -->
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
-    <div class="container">
-        <a class="navbar-brand text-primary d-flex align-items-center" href="index.php">
-            <i class="bi bi-book-fill me-2 fs-3"></i>
-            <span>Literaturku</span>
-        </a>
-        
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <div class="ms-auto">
-                <?php include 'navigasi.php'; ?>
-            </div>
-        </div>
-    </div>
-</nav>
+if (!$user) {
+    session_destroy();
+    header('Location: login.php?redirect=' . urlencode($_SERVER['REQUEST_URI']));
+    exit();
+}
 
-<main class="py-4">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-8 mx-auto">
+// Proses form submit
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $nama_lengkap = trim($_POST['nama_lengkap']);
+    $username = trim($_POST['username']);
+    $email = trim($_POST['email']);
+    $bio = trim($_POST['bio']);
+    $current_password = $_POST['current_password'];
+    $new_password = $_POST['new_password'];
+    $confirm_password = $_POST['confirm_password'];
+    
+    // Validasi input dasar
+    if (empty($nama_lengkap) || empty($username) || empty($email)) {
+        $error = 'Nama lengkap, username, dan email harus diisi!';
+    } elseif (strlen($username) < 3) {
+        $error = 'Username minimal 3 karakter!';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Format email tidak valid!';
+    } else {
+        try {
+            // Cek apakah username atau email sudah digunakan user lain
+            $sql_check = "SELECT id FROM users WHERE (username = ? OR email = ?) AND id != ?";
+            $stmt_check = $pdo->prepare($sql_check);
+            $stmt_check->execute([$username, $email, $_SESSION['user_id']]);
+            
+            if ($stmt_check->fetch()) {
+                $error = 'Username atau email sudah digunakan user lain!';
+            } else {
+                // Cek jika ada perubahan password
+                $update_password = false;
+                $password_hash = $user['password'];
                 
-                <!-- Profile Header -->
-                <div class="card shadow mb-4">
-                    <div class="card-body text-center py-5">
-                        <div class="profile-avatar">
-                            <?php echo $avatar_initial; ?>
-                        </div>
-                        <h1 class="h3 mb-2">Profile Pengguna</h1>
-                        <p class="text-muted">Kelola informasi akun dan pengaturan Anda</p>
-                    </div>
-                </div>
-
-                <!-- User Information Card -->
-                <div class="card shadow mb-4">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="bi bi-person-circle me-2"></i>
-                            Informasi Akun
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <strong class="text-muted">Username:</strong>
-                                <div class="fs-5"><?php echo htmlspecialchars($current_user['username']); ?></div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <strong class="text-muted">Email:</strong>
-                                <div class="fs-5"><?php echo htmlspecialchars($current_user['email']); ?></div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <strong class="text-muted">ID User:</strong>
-                                <div class="fs-5 font-monospace">#<?php echo htmlspecialchars($current_user['id']); ?></div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <strong class="text-muted">Status:</strong>
-                                <div class="fs-5">
-                                    <span class="badge bg-success">
-                                        <i class="bi bi-check-circle me-1"></i>
-                                        Aktif
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Profile Stats -->
-                <div class="card shadow mb-4">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="bi bi-bar-chart me-2"></i>
-                            Statistik Akun
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-3 col-sm-6">
-                                <div class="card text-center bg-primary text-white">
-                                    <div class="card-body">
-                                        <h3 class="card-title">1</h3>
-                                        <p class="card-text">Akun Aktif</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-sm-6">
-                                <div class="card text-center bg-info text-white">
-                                    <div class="card-body">
-                                        <h3 class="card-title">0</h3>
-                                        <p class="card-text">Artikel</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-sm-6">
-                                <div class="card text-center bg-warning text-white">
-                                    <div class="card-body">
-                                        <h3 class="card-title">0</h3>
-                                        <p class="card-text">Favorit</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-sm-6">
-                                <div class="card text-center bg-success text-white">
-                                    <div class="card-body">
-                                        <h5 class="card-title">Today</h5>
-                                        <p class="card-text">Terakhir Login</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Profile Actions -->
-                <div class="card shadow mb-4">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="bi bi-gear me-2"></i>
-                            Aksi Pengguna
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex flex-wrap gap-2 mb-4">
-                            <a href="index.php" class="btn btn-outline-secondary">
-                                <i class="bi bi-house me-2"></i>Kembali ke Beranda
-                            </a>
-                            <a href="#" onclick="editProfile()" class="btn btn-primary">
-                                <i class="bi bi-pencil me-2"></i>Edit Profile
-                            </a>
-                            <a href="#" onclick="confirmLogout()" class="btn btn-danger">
-                                <i class="bi bi-box-arrow-right me-2"></i>Logout
-                            </a>
-                        </div>
-                        
-                        <!-- Success Badge -->
-                        <div class="alert alert-success" role="alert">
-                            <h6 class="alert-heading">
-                                <i class="bi bi-check-circle me-2"></i>
-                                Sistem Authentication Berhasil!
-                            </h6>
-                            <p class="mb-1">Anda berhasil login dan dapat melihat halaman yang dilindungi ini.</p>
-                            <hr>
-                            <small class="text-muted">Halaman ini hanya bisa diakses oleh user yang sudah login.</small>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-</main>
-
-<!-- Bootstrap Footer -->
-<footer class="bg-dark text-light py-4 mt-5">
-    <div class="container">
-        <?php include 'footer.php'; ?>
-    </div>
-</footer>
-
-<script>
-function confirmLogout() {
-    if (confirm('Apakah Anda yakin ingin logout?')) {
-        // Loading effect
-        document.body.style.opacity = '0.7';
-        document.body.style.transition = 'opacity 0.3s ease';
-        
-        // Show loading message
-        const button = event.target;
-        const originalText = button.innerHTML;
-        button.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Logging out...';
-        button.style.pointerEvents = 'none';
-        
-        setTimeout(() => {
-            window.location.href = 'logout.php';
-        }, 500);
+                if (!empty($new_password)) {
+                    if (empty($current_password)) {
+                        $error = 'Password lama harus diisi untuk mengubah password!';
+                    } elseif (!password_verify($current_password, $user['password'])) {
+                        $error = 'Password lama tidak benar!';
+                    } elseif (strlen($new_password) < 6) {
+                        $error = 'Password baru minimal 6 karakter!';
+                    } elseif ($new_password !== $confirm_password) {
+                        $error = 'Password baru dan konfirmasi password tidak sama!';
+                    } else {
+                        $update_password = true;
+                        $password_hash = password_hash($new_password, PASSWORD_DEFAULT);
+                    }
+                }
+                
+                if (!$error) {
+                    // Update data user
+                    $sql = "UPDATE users SET 
+                            nama_lengkap = ?, username = ?, email = ?, bio = ?, password = ?, 
+                            updated_at = CURRENT_TIMESTAMP 
+                            WHERE id = ?";
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute([$nama_lengkap, $username, $email, $bio, $password_hash, $_SESSION['user_id']]);
+                    
+                    // Update session data
+                    $_SESSION['username'] = $username;
+                    $_SESSION['email'] = $email;
+                    
+                    // Update data user untuk form
+                    $user['nama_lengkap'] = $nama_lengkap;
+                    $user['username'] = $username;
+                    $user['email'] = $email;
+                    $user['bio'] = $bio;
+                    
+                    $success = 'Profil berhasil diupdate!';
+                    if ($update_password) {
+                        $success .= ' Password juga berhasil diubah.';
+                    }
+                }
+            }
+        } catch (PDOException $e) {
+            $error = 'Terjadi kesalahan: ' . $e->getMessage();
+        }
     }
 }
 
-function editProfile() {
-    const modal = new bootstrap.Modal(document.getElementById('editProfileModal') || createEditModal());
-    modal.show();
-}
+// Ambil statistik user
+$sql_stats = "SELECT 
+                COUNT(*) as total_articles,
+                SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) as published_articles,
+                SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft_articles,
+                SUM(views) as total_views
+              FROM artikels WHERE user_id = ?";
+$stmt_stats = $pdo->prepare($sql_stats);
+$stmt_stats->execute([$_SESSION['user_id']]);
+$stats = $stmt_stats->fetch();
 
-function createEditModal() {
-    const modalHTML = `
-        <div class="modal fade" id="editProfileModal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">
-                            <i class="bi bi-pencil me-2"></i>
-                            Edit Profile
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle me-2"></i>
-                            <strong>Fitur Segera Hadir!</strong>
+include 'header.php';
+?>
+
+<div class="row">
+    <div class="col-md-12">
+        <h1>👤 Edit Profil</h1>
+        <p class="lead">Kelola informasi profil dan akun Anda</p>
+        <hr>
+    </div>
+</div>
+
+<?php if ($error): ?>
+    <div class="alert alert-danger"><?php echo $error; ?></div>
+<?php endif; ?>
+
+<?php if ($success): ?>
+    <div class="alert alert-success"><?php echo $success; ?></div>
+<?php endif; ?>
+
+<div class="row">
+    <!-- Form Edit Profil -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5>✏️ Edit Informasi Profil</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="nama_lengkap" class="form-label">Nama Lengkap *</label>
+                                <input type="text" class="form-control" id="nama_lengkap" name="nama_lengkap" 
+                                       value="<?php echo htmlspecialchars($user['nama_lengkap']); ?>" 
+                                       required maxlength="100">
+                            </div>
                         </div>
-                        <p>Fitur edit profile akan segera tersedia. Untuk saat ini, Anda dapat:</p>
-                        <ul>
-                            <li>Melihat informasi akun</li>
-                            <li>Logout dari sistem</li>
-                            <li>Kembali ke beranda</li>
-                        </ul>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username *</label>
+                                <input type="text" class="form-control" id="username" name="username" 
+                                       value="<?php echo htmlspecialchars($user['username']); ?>" 
+                                       required maxlength="50">
+                                <div class="form-text">Minimal 3 karakter, hanya huruf, angka, dan underscore</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                        <button type="button" class="btn btn-primary" disabled>
-                            <i class="bi bi-gear me-2"></i>
-                            Pengaturan (Segera)
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email *</label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               value="<?php echo htmlspecialchars($user['email']); ?>" 
+                               required maxlength="100">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="bio" class="form-label">Bio</label>
+                        <textarea class="form-control" id="bio" name="bio" rows="4" 
+                                  placeholder="Ceritakan sedikit tentang diri Anda..."><?php echo htmlspecialchars($user['bio']); ?></textarea>
+                        <div class="form-text">Deskripsi singkat tentang diri Anda (opsional)</div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>🔐 Ubah Password (Opsional)</h6>
+                    <p class="text-muted">Kosongkan jika tidak ingin mengubah password</p>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="current_password" class="form-label">Password Lama</label>
+                                <input type="password" class="form-control" id="current_password" name="current_password">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="new_password" class="form-label">Password Baru</label>
+                                <input type="password" class="form-control" id="new_password" name="new_password">
+                                <div class="form-text">Minimal 6 karakter</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="confirm_password" class="form-label">Konfirmasi Password Baru</label>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="admin.php" class="btn btn-secondary me-md-2">
+                            ← Kembali ke Admin
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            💾 Simpan Perubahan
                         </button>
                     </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Info Profil dan Statistik -->
+    <div class="col-md-4">
+        <!-- Info Akun -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6>ℹ️ Info Akun</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Role:</strong> <span class="badge bg-<?php echo $user['role'] == 'admin' ? 'danger' : 'primary'; ?>"><?php echo ucfirst($user['role']); ?></span></p>
+                <p><strong>Bergabung:</strong><br><?php echo date('d/m/Y', strtotime($user['created_at'])); ?></p>
+                <p><strong>Terakhir update:</strong><br><?php echo date('d/m/Y H:i', strtotime($user['updated_at'])); ?></p>
+            </div>
+        </div>
+        
+        <!-- Statistik -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6>📊 Statistik Artikel</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <h4 class="text-primary"><?php echo $stats['total_articles'] ?: 0; ?></h4>
+                        <p class="small">Total Artikel</p>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <h4 class="text-success"><?php echo $stats['published_articles'] ?: 0; ?></h4>
+                        <p class="small">Dipublikasi</p>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-warning"><?php echo $stats['draft_articles'] ?: 0; ?></h4>
+                        <p class="small">Draft</p>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-info"><?php echo $stats['total_views'] ?: 0; ?></h4>
+                        <p class="small">Total Views</p>
+                    </div>
+                </div>
+                
+                <?php if ($stats['total_articles'] > 0): ?>
+                    <div class="d-grid">
+                        <a href="artikel_manager.php" class="btn btn-outline-primary btn-sm">
+                            📝 Kelola Artikel
+                        </a>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h6>🚀 Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="artikel_add.php" class="btn btn-primary btn-sm">
+                        ✍️ Tulis Artikel Baru
+                    </a>
+                    <a href="artikel_manager.php" class="btn btn-info btn-sm">
+                        📝 Kelola Artikel
+                    </a>
+                    <?php if ($user['role'] == 'admin'): ?>
+                        <a href="kategori_manager.php" class="btn btn-success btn-sm">
+                            📂 Kelola Kategori
+                        </a>
+                    <?php endif; ?>
+                    <hr>
+                    <a href="logout.php" class="btn btn-outline-danger btn-sm"
+                       onclick="return confirm('Apakah Anda yakin ingin logout?')">
+                        🚪 Logout
+                    </a>
                 </div>
             </div>
         </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    return document.getElementById('editProfileModal');
-}
+    </div>
+</div>
 
-// Add smooth scroll animation for cards
+<!-- Tips -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6>💡 Tips Profil</h6>
+                <ul class="small mb-0">
+                    <li><strong>Username:</strong> Gunakan nama yang mudah diingat dan profesional</li>
+                    <li><strong>Email:</strong> Pastikan email aktif untuk notifikasi</li>
+                    <li><strong>Bio:</strong> Ceritakan keahlian atau minat Anda untuk pembaca</li>
+                    <li><strong>Password:</strong> Gunakan kombinasi huruf, angka, dan simbol untuk keamanan</li>
+                    <li><strong>Privasi:</strong> Jangan bagikan informasi sensitif di bio</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Validasi form
 document.addEventListener('DOMContentLoaded', function() {
-    const cards = document.querySelectorAll('.card');
+    const newPasswordInput = document.getElementById('new_password');
+    const confirmPasswordInput = document.getElementById('confirm_password');
+    const currentPasswordInput = document.getElementById('current_password');
     
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry, index) => {
-            if (entry.isIntersecting) {
-                setTimeout(() => {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }, index * 100);
-            }
-        });
-    });
+    function validatePasswords() {
+        const newPassword = newPasswordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        
+        if (newPassword && newPassword !== confirmPassword) {
+            confirmPasswordInput.setCustomValidity('Password tidak sama');
+        } else {
+            confirmPasswordInput.setCustomValidity('');
+        }
+        
+        // Jika ada password baru, current password wajib diisi
+        if (newPassword && !currentPasswordInput.value) {
+            currentPasswordInput.setCustomValidity('Password lama harus diisi');
+        } else {
+            currentPasswordInput.setCustomValidity('');
+        }
+    }
     
-    cards.forEach(card => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-        observer.observe(card);
-    });
+    newPasswordInput.addEventListener('input', validatePasswords);
+    confirmPasswordInput.addEventListener('input', validatePasswords);
+    currentPasswordInput.addEventListener('input', validatePasswords);
 });
 </script>
 
-<!-- Bootstrap JavaScript -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html> 
+<?php include 'footer.php'; ?> 

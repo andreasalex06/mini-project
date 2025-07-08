@@ -1,320 +1,258 @@
 <?php
-session_start();
 require_once 'koneksi.php';
-require_once 'auth_helper.php';
-require_once 'artikel_functions_enum.php';
 
-// Get article ID
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+// Ambil ID artikel dari URL
+$article_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-if (!$id) {
-    header("Location: index.php");
+if ($article_id <= 0) {
+    header('Location: index.php');
     exit();
 }
 
-// Get article details
-$artikel = getArtikelById($pdo, $id);
+// Ambil artikel dengan JOIN ke tabel kategoris dan users
+$sql = "SELECT a.*, k.nama_kategori, k.color, k.icon, u.username, u.nama_lengkap 
+        FROM artikels a 
+        JOIN kategoris k ON a.kategori_id = k.id 
+        JOIN users u ON a.user_id = u.id 
+        WHERE a.id = ?";
+$stmt = $pdo->prepare($sql);
+$stmt->execute([$article_id]);
+$article = $stmt->fetch();
 
-if (!$artikel) {
-    header("Location: index.php");
+if (!$article) {
+    header('Location: index.php');
     exit();
 }
 
-// Increment views
-incrementViews($pdo, $id);
-
-// Get related articles (same category, excluding current article)
-$related_articles = [];
-if ($artikel['category_enum']) {
-    $related_articles = getRelatedArtikel($pdo, $id, $artikel['category_enum'], 4);
+// Cek apakah artikel published atau milik user yang login
+$can_view = false;
+if ($article['status'] == 'published') {
+    $can_view = true;
+} elseif (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $article['user_id']) {
+    $can_view = true;
+} elseif (isset($_SESSION['role']) && $_SESSION['role'] == 'admin') {
+    $can_view = true;
 }
 
-// Check if current user can edit this article
-$can_edit = is_logged_in() && (get_logged_in_user()['id'] == $artikel['user_id']);
+if (!$can_view) {
+    header('Location: index.php');
+    exit();
+}
+
+// Update view count hanya jika artikel published
+if ($article['status'] == 'published') {
+    $sql_update = "UPDATE artikels SET views = views + 1 WHERE id = ?";
+    $stmt_update = $pdo->prepare($sql_update);
+    $stmt_update->execute([$article_id]);
+}
+
+// Set title dan meta
+$title = $article['meta_title'] ?: $article['judul'];
+$meta_description = $article['meta_description'] ?: substr(strip_tags($article['konten']), 0, 160);
+
+// Ambil artikel terkait dari kategori yang sama
+$sql_related = "SELECT id, judul, slug, ringkasan, created_at 
+                FROM artikels 
+                WHERE kategori_id = ? AND id != ? AND status = 'published' 
+                ORDER BY created_at DESC 
+                LIMIT 3";
+$stmt_related = $pdo->prepare($sql_related);
+$stmt_related->execute([$article['kategori_id'], $article_id]);
+$related_articles = $stmt_related->fetchAll();
+
+include 'header.php';
 ?>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="author" content="Andreas Alex">
-    <meta name="description" content="<?php echo htmlspecialchars($artikel['ringkasan']); ?> - Artikel di Literaturku">
-    <title><?php echo htmlspecialchars($artikel['judul']); ?> - Literaturku</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-        .article-container { max-width: 800px; margin: 0 auto; }
-        .share-btn { transition: all 0.2s ease; }
-        .share-btn:hover { transform: translateY(-2px); }
-    </style>
-</head>
-<body class="bg-light">
 
-<!-- Bootstrap Navigation -->
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
-    <div class="container">
-        <a class="navbar-brand text-primary d-flex align-items-center" href="index.php">
-            <i class="bi bi-book-fill me-2 fs-3"></i>
-            <span>Literaturku</span>
-        </a>
-        
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <div class="ms-auto">
-                <?php include 'navigasi.php'; ?>
-            </div>
-        </div>
-    </div>
-</nav>
-
-<main class="py-4">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-8 mx-auto">
-                <!-- Article Content -->
-                <article class="card shadow-sm">
-                    <div class="card-body p-4 p-md-5">
-                        <!-- Article Header -->
-                        <header class="mb-4">
-                            <div class="mb-3">
-                                <span class="badge fs-6 py-2 px-3" style="background-color: <?php echo $artikel['kategori_warna']; ?>">
-                                    <?php echo htmlspecialchars($artikel['kategori_nama'] ?? 'Umum'); ?>
-                                </span>
-                            </div>
-                            
-                            <h1 class="display-5 fw-bold text-dark mb-3">
-                                <?php echo htmlspecialchars($artikel['judul']); ?>
-                            </h1>
-                            
-                            <p class="lead text-muted mb-4">
-                                <?php echo htmlspecialchars($artikel['ringkasan']); ?>
-                            </p>
-                            
-                            <div class="d-flex flex-wrap gap-3 mb-4 text-muted">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-person me-2"></i>
-                                    <span><?php echo htmlspecialchars($artikel['penulis'] ?? 'Anonymous'); ?></span>
-                                </div>
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-calendar me-2"></i>
-                                    <span><?php echo formatTanggal($artikel['created_at']); ?></span>
-                                </div>
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-eye me-2"></i>
-                                    <span><?php echo number_format($artikel['views']); ?> kali dibaca</span>
-                                </div>
-                            </div>
-                            
-                            <hr>
-                        </header>
-                        
-                        <!-- Article Body -->
-                        <div class="article-content">
-                            <div class="fs-5 lh-base text-dark">
-                                <?php echo nl2br(htmlspecialchars($artikel['konten'])); ?>
-                            </div>
-                        </div>
-                        
-                        <hr class="my-4">
-                        
-                        <!-- Article Actions -->
-                        <footer>
-                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                                <div class="d-flex gap-2">
-                                    <a href="index.php" class="btn btn-outline-secondary">
-                                        <i class="bi bi-arrow-left me-2"></i>Kembali ke Beranda
-                                    </a>
-                                    <?php if ($can_edit): ?>
-                                        <a href="edit_artikel.php?id=<?php echo $artikel['id']; ?>" class="btn btn-primary">
-                                            <i class="bi bi-pencil me-2"></i>Edit Artikel
-                                        </a>
-                                    <?php endif; ?>
-                                </div>
-                                
-                                <small class="text-muted">
-                                    <i class="bi bi-clock-history me-1"></i>
-                                    Terakhir diupdate: <?php echo formatTanggal($artikel['updated_at']); ?>
-                                </small>
-                            </div>
-                        </footer>
+<div class="row">
+    <div class="col-md-8">
+        <!-- Artikel -->
+        <article class="card">
+            <div class="card-body">
+                <!-- Status Draft -->
+                <?php if ($article['status'] == 'draft'): ?>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> 
+                        <strong>Draft</strong> - Artikel ini belum dipublikasikan
                     </div>
-                </article>
+                <?php endif; ?>
                 
-                <!-- Share Section -->
-                <div class="card shadow-sm mt-4">
-                    <div class="card-body p-4">
-                        <h5 class="card-title mb-3">
-                            <i class="bi bi-share me-2 text-primary"></i>
-                            Bagikan Artikel Ini
-                        </h5>
-                        <div class="d-flex flex-wrap gap-2">
-                            <button class="btn btn-outline-info share-btn" onclick="shareToTwitter()">
-                                <i class="bi bi-twitter me-2"></i>Twitter
-                            </button>
-                            <button class="btn btn-outline-primary share-btn" onclick="shareToFacebook()">
-                                <i class="bi bi-facebook me-2"></i>Facebook
-                            </button>
-                            <button class="btn btn-outline-success share-btn" onclick="shareToWhatsApp()">
-                                <i class="bi bi-whatsapp me-2"></i>WhatsApp
-                            </button>
-                            <button class="btn btn-outline-secondary share-btn" onclick="copyLink()">
-                                <i class="bi bi-clipboard me-2"></i>Salin Link
-                            </button>
-                        </div>
-                    </div>
+                <!-- Kategori -->
+                <div class="mb-3">
+                    <span class="badge" style="background-color: <?php echo $article['color']; ?>;">
+                        <i class="<?php echo $article['icon']; ?>"></i>
+                        <?php echo $article['nama_kategori']; ?>
+                    </span>
                 </div>
                 
-                <!-- Related Articles -->
-                <?php if (!empty($related_articles)): ?>
-                <section class="mt-5">
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="card-title mb-0">
-                                <i class="bi bi-link-45deg me-2"></i>
-                                Artikel Terkait
-                            </h5>
-                            <small class="opacity-75">
-                                Artikel lain dalam kategori <?php echo htmlspecialchars($artikel['kategori_nama']); ?>
+                <!-- Judul -->
+                <h1 class="mb-3"><?php echo htmlspecialchars($article['judul']); ?></h1>
+                
+                <!-- Meta Info -->
+                <div class="text-muted mb-4">
+                    <small>
+                        <i class="bi bi-person"></i> 
+                        <?php echo htmlspecialchars($article['nama_lengkap']); ?>
+                        • 
+                        <i class="bi bi-calendar"></i> 
+                        <?php echo date('d/m/Y H:i', strtotime($article['created_at'])); ?>
+                        <?php if ($article['status'] == 'published'): ?>
+                            • 
+                            <i class="bi bi-eye"></i> 
+                            <?php echo $article['views']; ?> views
+                        <?php endif; ?>
+                    </small>
+                </div>
+                
+                <!-- Featured Image -->
+                <?php if ($article['featured_image']): ?>
+                    <div class="mb-4">
+                        <img src="<?php echo htmlspecialchars($article['featured_image']); ?>" 
+                             class="img-fluid rounded" 
+                             alt="<?php echo htmlspecialchars($article['judul']); ?>">
+                    </div>
+                <?php endif; ?>
+                
+                <!-- Ringkasan -->
+                <?php if ($article['ringkasan']): ?>
+                    <div class="alert alert-info">
+                        <strong>Ringkasan:</strong> <?php echo htmlspecialchars($article['ringkasan']); ?>
+                    </div>
+                <?php endif; ?>
+                
+                <!-- Konten -->
+                <div class="content">
+                    <?php echo nl2br(htmlspecialchars($article['konten'])); ?>
+                </div>
+                
+                <!-- Tags -->
+                <?php if ($article['tags']): ?>
+                    <div class="mt-4">
+                        <h6>🏷️ Tags:</h6>
+                        <?php 
+                        $tags = explode(',', $article['tags']);
+                        foreach ($tags as $tag): 
+                            $tag = trim($tag);
+                            if ($tag):
+                        ?>
+                            <span class="badge bg-secondary me-1"><?php echo htmlspecialchars($tag); ?></span>
+                        <?php 
+                            endif;
+                        endforeach; 
+                        ?>
+                    </div>
+                <?php endif; ?>
+                
+                <!-- Action Buttons -->
+                <div class="mt-4 pt-3 border-top">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <a href="index.php" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Kembali ke Beranda
+                            </a>
+                            <a href="kategori.php?id=<?php echo $article['kategori_id']; ?>" class="btn btn-outline-primary">
+                                <i class="bi bi-folder"></i> Artikel Lain di <?php echo $article['nama_kategori']; ?>
+                            </a>
+                        </div>
+                        
+                        <!-- Edit button jika artikel milik user atau admin -->
+                        <?php if (isset($_SESSION['user_id']) && 
+                                 ($_SESSION['user_id'] == $article['user_id'] || $_SESSION['role'] == 'admin')): ?>
+                            <div>
+                                <a href="artikel_edit.php?id=<?php echo $article['id']; ?>" class="btn btn-primary">
+                                    <i class="bi bi-pencil"></i> Edit Artikel
+                                </a>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Info Author -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6><i class="bi bi-person-circle"></i> Tentang Penulis</h6>
+            </div>
+            <div class="card-body">
+                <h6><?php echo htmlspecialchars($article['nama_lengkap']); ?></h6>
+                <p class="text-muted">@<?php echo htmlspecialchars($article['username']); ?></p>
+                
+                <!-- Statistik penulis -->
+                <?php
+                $sql_stats = "SELECT COUNT(*) as total_articles FROM artikels WHERE user_id = ? AND status = 'published'";
+                $stmt_stats = $pdo->prepare($sql_stats);
+                $stmt_stats->execute([$article['user_id']]);
+                $stats = $stmt_stats->fetch();
+                ?>
+                <small class="text-muted">
+                    <i class="bi bi-file-text"></i> 
+                    <?php echo $stats['total_articles']; ?> artikel dipublikasikan
+                </small>
+            </div>
+        </div>
+        
+        <!-- Artikel Terkait -->
+        <?php if (!empty($related_articles)): ?>
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="bi bi-collection"></i> Artikel Terkait</h6>
+                </div>
+                <div class="card-body">
+                    <?php foreach ($related_articles as $related): ?>
+                        <div class="mb-3">
+                            <h6 class="mb-1">
+                                <a href="artikel_detail.php?id=<?php echo $related['id']; ?>" 
+                                   class="text-decoration-none">
+                                    <?php echo htmlspecialchars($related['judul']); ?>
+                                </a>
+                            </h6>
+                            <?php if ($related['ringkasan']): ?>
+                                <p class="text-muted small mb-1">
+                                    <?php echo substr(htmlspecialchars($related['ringkasan']), 0, 80) . '...'; ?>
+                                </p>
+                            <?php endif; ?>
+                            <small class="text-muted">
+                                <i class="bi bi-calendar"></i> 
+                                <?php echo date('d/m/Y', strtotime($related['created_at'])); ?>
                             </small>
                         </div>
-                        <div class="card-body p-0">
-                            <div class="row g-0">
-                                <?php foreach ($related_articles as $index => $related): ?>
-                                    <div class="col-md-6">
-                                        <div class="p-4 <?php echo $index % 2 == 1 ? 'border-start' : ''; ?> <?php echo $index >= 2 ? 'border-top' : ''; ?>">
-                                            <div class="mb-2">
-                                                <span class="badge" style="background-color: <?php echo $related['kategori_warna']; ?>">
-                                                    <?php echo htmlspecialchars($related['kategori_nama']); ?>
-                                                </span>
-                                            </div>
-                                            
-                                            <h6 class="fw-bold mb-2">
-                                                <a href="artikel_detail.php?id=<?php echo $related['id']; ?>" 
-                                                   class="text-decoration-none text-dark">
-                                                    <?php echo htmlspecialchars($related['judul']); ?>
-                                                </a>
-                                            </h6>
-                                            
-                                            <div class="d-flex gap-3 text-muted small">
-                                                <span>
-                                                    <i class="bi bi-calendar me-1"></i>
-                                                    <?php echo formatTanggal($related['created_at']); ?>
-                                                </span>
-                                                <span>
-                                                    <i class="bi bi-eye me-1"></i>
-                                                    <?php echo number_format($related['views']); ?>
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
+                        <?php if ($related !== end($related_articles)): ?>
+                            <hr>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+        
+        <!-- Statistik Artikel -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6><i class="bi bi-bar-chart"></i> Statistik</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Views:</span>
+                    <strong><?php echo $article['views']; ?></strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Dibuat:</span>
+                    <small><?php echo date('d/m/Y', strtotime($article['created_at'])); ?></small>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Terakhir diupdate:</span>
+                    <small><?php echo date('d/m/Y', strtotime($article['updated_at'])); ?></small>
+                </div>
+                <?php if ($article['published_at']): ?>
+                    <div class="d-flex justify-content-between">
+                        <span>Dipublikasi:</span>
+                        <small><?php echo date('d/m/Y', strtotime($article['published_at'])); ?></small>
                     </div>
-                </section>
                 <?php endif; ?>
             </div>
         </div>
     </div>
-</main>
+</div>
 
-<!-- Bootstrap Footer -->
-<footer class="bg-dark text-light py-4 mt-5">
-    <div class="container">
-        <?php include 'footer.php'; ?>
-    </div>
-</footer>
-
-<script>
-// Share functions
-function shareToTwitter() {
-    const title = <?php echo json_encode($artikel['judul']); ?>;
-    const url = window.location.href;
-    const text = encodeURIComponent(`Baca artikel menarik: ${title}`);
-    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(url)}`, '_blank');
-}
-
-function shareToFacebook() {
-    const url = window.location.href;
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
-}
-
-function shareToWhatsApp() {
-    const title = <?php echo json_encode($artikel['judul']); ?>;
-    const url = window.location.href;
-    const text = encodeURIComponent(`Baca artikel menarik: ${title} ${url}`);
-    window.open(`https://wa.me/?text=${text}`, '_blank');
-}
-
-function copyLink() {
-    const url = window.location.href;
-    
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(url).then(function() {
-            // Change button text temporarily
-            const btn = event.target;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '✅ Tersalin!';
-            btn.style.background = '#28a745';
-            
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.style.background = '#6c757d';
-            }, 2000);
-        });
-    } else {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = url;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        
-        alert('Link berhasil disalin!');
-    }
-}
-
-// Smooth scroll for related articles
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        document.querySelector(this.getAttribute('href')).scrollIntoView({
-            behavior: 'smooth'
-        });
-    });
-});
-
-// Reading progress indicator
-window.addEventListener('scroll', function() {
-    const article = document.querySelector('.article-content');
-    if (!article) return;
-    
-    const articleTop = article.offsetTop;
-    const articleHeight = article.offsetHeight;
-    const scrollPosition = window.scrollY;
-    const windowHeight = window.innerHeight;
-    
-    const progress = Math.min(
-        Math.max((scrollPosition - articleTop + windowHeight) / articleHeight, 0),
-        1
-    );
-    
-    // You can use this progress value to show a reading progress bar
-    // For now, we'll just log it
-    // console.log('Reading progress:', Math.round(progress * 100) + '%');
-});
-</script>
-
-<!-- Bootstrap JavaScript -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html> 
+<?php include 'footer.php'; ?> 
